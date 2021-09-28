@@ -4,17 +4,17 @@ require 'active_job'
 
 module Wisper
   class ActiveJobBroadcaster
-    def broadcast(subscriber, publisher, event, args)
+    def broadcast(subscriber, publisher, event, args, options)
       wrapper = subscriber.respond_to?(:queue) ? Wrapper.set(queue: subscriber.queue) : Wrapper
-      wrapper.perform_later(subscriber.name, event, args)
+      wrapper.perform_later(subscriber.name, event, args, options)
     end
 
     class Wrapper < ::ActiveJob::Base
       queue_as :default
 
-      def perform(class_name, event, args)
+      def perform(class_name, event, args, options)
         listener = class_name.constantize
-        listener.public_send(event, *args)
+        listener.public_send(event, *args, **options)
       end
     end
 

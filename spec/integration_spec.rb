@@ -4,7 +4,7 @@ RSpec.describe 'integration tests:' do
       include Wisper::Publisher
 
       def run
-        broadcast(:it_happened, 'hello, world')
+        broadcast(:it_happened, 'hello, world', hello: 'world')
       end
     end.new
   end
