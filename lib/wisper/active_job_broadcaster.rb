@@ -8,8 +8,7 @@ module Wisper
       if subscriber < ActiveJob::Listener
         subscriber.perform_later(event, args, options)
       else
-        wrapper = subscriber.respond_to?(:queue) ? Wrapper.set(queue: subscriber.queue) : Wrapper
-        wrapper.perform_later(subscriber.name, event, args, options)
+        Wrapper.perform_later(subscriber.name, event, args, options)
       end
     end
 

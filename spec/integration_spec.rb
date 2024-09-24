@@ -1,5 +1,6 @@
 class DummyActiveJobSubscriber < ActiveJob::Base
   include Wisper::ActiveJob::Listener
+  queue_as :fast
 
   def self.it_happened
     # noop
@@ -25,18 +26,6 @@ RSpec.describe 'integration tests:' do
     end
   end
 
-  let(:subscriber_with_queue) do
-    Class.new do
-      def self.queue
-        :fast
-      end
-
-      def self.it_happened
-        # noop
-      end
-    end
-  end
-
   let(:adapter) { ActiveJob::Base.queue_adapter }
 
   before do
@@ -47,12 +36,10 @@ RSpec.describe 'integration tests:' do
   context 'when the subscriber is a plain old ruby class' do
     it 'enqueues Wrapper ActiveJob with nil, event name and args array' do
       publisher.subscribe(subscriber, async: Wisper::ActiveJobBroadcaster.new)
-      publisher.subscribe(subscriber_with_queue, async: Wisper::ActiveJobBroadcaster.new)
 
       publisher.run
 
-      expect(adapter.enqueued_jobs.size).to eq 2
-      expect(adapter.enqueued_jobs.map { |job| job[:queue] }).to match_array ["default", "fast"]
+      expect(adapter.enqueued_jobs.size).to eq 1
       job = adapter.enqueued_jobs.first
       expect(job['job_class']).to eq 'Wisper::ActiveJobBroadcaster::Wrapper'
       expect(job['arguments']).to eq [nil, 'it_happened', 'hello, world', {"_aj_symbol_keys"=>["hello"], "hello"=>"world"}]
@@ -67,6 +54,7 @@ RSpec.describe 'integration tests:' do
 
       expect(adapter.enqueued_jobs.size).to eq 1
       job = adapter.enqueued_jobs.first
+      expect(job[:queue]).to eq 'fast'
       expect(job['job_class']).to eq 'DummyActiveJobSubscriber'
       expect(job['arguments']).to eq ['it_happened', 'hello, world', {"_aj_symbol_keys"=>["hello"], "hello"=>"world"}]
     end

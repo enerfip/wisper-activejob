@@ -33,21 +33,6 @@ class MyListener
 end
 ```
 
-### Running subscriber in a specific queue
-
-All jobs are by default enqueued in the `default` queue. You can however specify for a listener which queue to use by implementing a `queue` class method:
-
-```ruby
-class MyListener
-  def self.queue
-    :fast
-  end
-
-  def self.event_name
-  end
-end
-```
-
 ### Running with a dedicated job class
 
 If you prefer to have a job class for each event listener, have your listener extend from `ActiveJob::Base`, include
