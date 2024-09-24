@@ -33,20 +33,25 @@ class MyListener
 end
 ```
 
-### Running subscriber in a specific queue
+### Running with a dedicated job class
 
-All jobs are by default enqueued in the `default` queue. You can however specify for a listener which queue to use by implementing a `queue` class method:
+If you prefer to have a job class for each event listener, have your listener extend from `ActiveJob::Base`, include
+`Wisper::ActiveJob::Listener` in it, and Wisper will automatically use this job instead of its own internal
+wrapper job:
 
 ```ruby
-class MyListener
-  def self.queue
-    :fast
-  end
+class MyImportantListener < ApplicationJob
+  include Wisper::ActiveJob::Listener
 
-  def self.event_name
+  queues_as :high_priority
+
+  def self.event_name(arg1, arg2)
   end
 end
 ```
+
+This can help with observability and prioritisation, since you can give different listeners different priorities, and
+they can be distinguished in APM software with ActiveJob integrations such as Datadog.
 
 When publishing events the arguments must be simple types as they need to be
 serialized, or the object must include `GlobalID` such as `ActiveRecord` models.
